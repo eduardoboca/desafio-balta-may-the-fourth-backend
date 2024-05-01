@@ -1,67 +1,59 @@
-﻿using MayTheFourth.Core.Entities;
+﻿using MayTheFourth.Core.Contexts.SharedContext;
+using MayTheFourth.Core.Entities;
 using MayTheFourth.Core.Interfaces.Repositories;
 
 namespace MayTheFourth.Tests.Repositories;
 
 public class FakeStarshipRepository : IStarshipRepository
 {
-    public List<Starship> starships = new()
+    public readonly List<Starship> _starships;
+
+    public FakeStarshipRepository()
     {
-        new(){
-          Name = "Executor",
-          Model = "Executor-class Star Dreadnought",
-          StarshipClass = "Star Dreadnought",
-          Manufacturer = "Kuat Drive Yards",
-          CostInCredits = 1143350000,
-          Length = 19000.0,
-          Crew = 279,
-          Passengers = 38000,
-          MaxAtmospheringSpeed = 40,
-          HyperdriveRating = "2.0",
-          MGLT = "40",
-          CargoCapacity = 25000000,
-          Consumables = "6 years",
-          Url = "https://starwars.fandom.com/wiki/Executor",
-          Created = DateTime.UtcNow,
-          Edited = DateTime.UtcNow
-        },
-        new(){
-          Name = "Millennium Falcon",
-          Model = "YT-1300 light freighter",
-          StarshipClass = "Light freighter",
-          Manufacturer = "Corellian Engineering Corporation",
-          CostInCredits = 100000,
-          Length = 34.37,
-          Crew = 4,
-          Passengers = 6,
-          MaxAtmospheringSpeed = 1050,
-          HyperdriveRating = "0.5",
-          MGLT = "75",
-          CargoCapacity = 100000,
-          Consumables = "2 months",
-          Url = "https://starwars.fandom.com/wiki/Millennium_Falcon",
-          Created = DateTime.UtcNow,
-          Edited = DateTime.UtcNow
-}
-    };
+        _starships = new List<Starship>()
+        {
+            new Starship()
+            {
+                Id = new Guid("1ca12345-6789-0abc-def0-1234567890ab"),
+                Name = "Millennium Falcon",
+                Slug = "millennium-falcon",
+                Manufacturer = "Corellian Engineering Corporation"
+            },
+            new Starship()
+            {
+                Id = Guid.NewGuid(),
+                Name = "X-wing",
+                Slug = "x-wing",
+                Manufacturer = "Incom Corporation"
+            },
+            new Starship()
+            {
+                Id = Guid.NewGuid(),
+                Name = "TIE Fighter",
+                Slug = "tie-fighter",
+                Manufacturer = "Sienar Fleet Systems"
+            },
+        };
+    }
 
     public Task<bool> AnyAsync(string name, CancellationToken cancellationToken)
     {
-        if (string.Equals(name, starships[0].Name))
+        if (string.Equals(name, _starships[0].Name))
             return Task.FromResult(true);
 
         return Task.FromResult(false);
     }
 
-    public async Task<List<Starship>?> GetAllAsync()
-    {
-        await Task.Delay(1000);
-        return starships;
-    }
-
     public Task<Starship?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+        => Task.FromResult(_starships.FirstOrDefault(x => x.Id == id));
+
+    public async Task<Starship?> GetBySlugAsync(string slug, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        if (string.IsNullOrEmpty(slug))
+            return null;
+
+        var lowerCaseSlug = slug.ToLowerInvariant();
+        return await Task.FromResult(_starships.FirstOrDefault(x => x.Slug == lowerCaseSlug));
     }
 
     public Task SaveAsync(Starship starship, CancellationToken cancellationToken)
@@ -70,5 +62,32 @@ public class FakeStarshipRepository : IStarshipRepository
             return Task.FromResult(false);
 
         return Task.FromResult(true);
+    }
+
+    public Task<int> CountTotalItemsAsync()
+        => Task.FromResult(_starships.Count);
+
+    public async Task<PagedList<Starship>?> GetAllAsync(int pageNumber, int pageSize)
+    {
+        var query = _starships.AsQueryable();
+        return await GetPagedAsync(query, pageNumber, pageSize);
+    }
+
+    private static Task<PagedList<T>> GetPagedAsync<T>(IQueryable<T> source, int pageNumber, int pageSize)
+        => Task.FromResult(new PagedList<T>(pageNumber, pageSize, source.Count(), source.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList()));
+
+    public Task<bool> AnyAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<Starship?> GetByUrlAsync(string url, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task UpdateAsync(Starship starship, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
     }
 }

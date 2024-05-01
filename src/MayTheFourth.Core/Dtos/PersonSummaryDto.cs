@@ -4,7 +4,6 @@ namespace MayTheFourth.Core.Dtos;
 
 public class PersonSummaryDto
 {
-    public PersonSummaryDto() { }
     public PersonSummaryDto(Person person)
     {
         Id = person.Id;
@@ -15,10 +14,10 @@ public class PersonSummaryDto
         HomeworldId = person.HomeworldId;
     }
 
-    public Guid Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string Slug { get; set; } = string.Empty;
-    public string BirthYear { get; set; } = string.Empty;
-    public string Gender { get; set; } = string.Empty;
-    public Guid HomeworldId { get; set; }
+    public Guid Id { get; }
+    public string Name { get; } = string.Empty;
+    public string Slug { get; } = string.Empty;
+    public string BirthYear { get; } = string.Empty;
+    public string Gender { get; } = string.Empty;
+    public Guid HomeworldId { get; }
 }

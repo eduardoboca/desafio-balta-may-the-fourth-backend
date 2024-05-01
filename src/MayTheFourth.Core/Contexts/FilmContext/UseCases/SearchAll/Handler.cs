@@ -1,45 +1,59 @@
-﻿using MayTheFourth.Core.Dtos;
+﻿using MayTheFourth.Core.Contexts.SharedContext;
+using MayTheFourth.Core.Dtos;
 using MayTheFourth.Core.Entities;
 using MayTheFourth.Core.Interfaces.Repositories;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Net;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace MayTheFourth.Core.Contexts.FilmContext.UseCases.SearchAll
+namespace MayTheFourth.Core.Contexts.FilmContext.UseCases.SearchAll;
+
+public class Handler : IRequestHandler<Request, Response>
 {
-    public class Handler : IRequestHandler<Request, Response>
+    private readonly IFilmRepository _filmRepository;
+
+    public Handler(IFilmRepository filmRepository)
+        => _filmRepository = filmRepository;
+
+    public async Task<Response> Handle(Request request, CancellationToken cancellationToken)
     {
-        private readonly IFilmRepository _filmRepository;
-
-        public Handler(IFilmRepository filmRepository)
+        #region GetAllFilms
+        PagedList<Film>? films;
+        int countItems = 0;
+        int pageSizeLimit = 30;
+        try
         {
-            _filmRepository = filmRepository;
+            if (request.PageSize > pageSizeLimit)
+                request.ChangePageSize(pageSizeLimit);
+
+            countItems = await _filmRepository.CountItemsAsync();
+            films = await _filmRepository.GetAllAsync(request.PageNumber, request.PageSize);
+
+            if (films!.Count <= 0)
+                return new Response("Nenhum filme encontrado.", ((int)HttpStatusCode.OK));
+
+            if (request.PageSize > films.Count)
+                films.ChangePageSize(countItems);
+        }
+        catch (Exception ex)
+        {
+            return new Response($"Erro: {ex.Message}", (int)HttpStatusCode.InternalServerError);
         }
 
-        public async Task<Response> Handle(Request request, CancellationToken cancellationToken)
-        {
-            #region GetAllFilms
-            List<Film>? films;
+        List<FilmSummaryDto> filmSummaryList = films.Items!.Select(film => new FilmSummaryDto(film)).ToList();
 
-            try
-            {
-                films = await _filmRepository.GetAllAsync();
-            }
-            catch (Exception ex)
-            {
-                return new Response($"Erro: {ex.Message}", 500);
-            }
+        PagedList<FilmSummaryDto> filmPagedSummaryList =
+            new(films.PageNumber, films.PageSize, countItems, filmSummaryList);
 
-            List<FilmSummaryDto> filmSummaryList = films.Select(film => new FilmSummaryDto(film)).ToList();
-            #endregion
+        var requestPageNumberOutOfRange =
+            filmPagedSummaryList.PageNumber > Math.Ceiling((double)filmPagedSummaryList.Count / filmPagedSummaryList.PageSize);
 
-            #region Response
-            return new Response("Lista de filmes encontrada", new ResponseData(new(filmSummaryList)));
-            #endregion
-        }
+        if (requestPageNumberOutOfRange)
+            return new Response($"Número de página inválido.", (int)HttpStatusCode.BadRequest);
+        #endregion
+
+        #region Response
+        return new Response("Lista de filmes encontrada", new ResponseData(filmPagedSummaryList));
+        #endregion
     }
 }

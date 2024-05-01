@@ -4,7 +4,6 @@ namespace MayTheFourth.Core.Dtos;
 
 public class PlanetSummaryDto
 {
-    public PlanetSummaryDto() { }
     public PlanetSummaryDto(Planet planet)
     {
         Id = planet.Id;
@@ -15,10 +14,10 @@ public class PlanetSummaryDto
         Climate = planet.Climate;
     }
 
-    public Guid Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string Slug { get; set; } = string.Empty;
-    public string Gravity { get; set; } = string.Empty;
-    public int Population { get; set; }
-    public string Climate { get; set; } = string.Empty;
+    public Guid Id { get; }
+    public string Name { get; } = string.Empty;
+    public string Slug { get; } = string.Empty;
+    public string Gravity { get; } = string.Empty;
+    public int Population { get; }
+    public string Climate { get; } = string.Empty;
 }

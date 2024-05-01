@@ -1,22 +1,26 @@
-﻿using MayTheFourth.Core.Entities;
+﻿using MayTheFourth.Core.Contexts.SharedContext;
+using MayTheFourth.Core.Entities;
 using MayTheFourth.Core.Interfaces.Repositories;
 using MayTheFourth.Infra.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace MayTheFourth.Infra.Repositories;
 
-public class PersonRepository : IPersonRepository
+public class PersonRepository : BaseRepository<Person>, IPersonRepository
 {
-    private readonly AppDbContext _appDbContext;
+    public PersonRepository(AppDbContext appDbContext) : base(appDbContext) { }
 
-    public PersonRepository(AppDbContext appDbContext)
-        => _appDbContext = appDbContext;
+    public async Task<bool> AnyAsync()
+    => await _appDbContext.Planets.AnyAsync();
 
-    public async Task<List<Person>?> GetAllAsync()
-        => await _appDbContext
-                .People
-                .AsNoTracking()
-                .ToListAsync();
+    public async Task<PagedList<Person>> GetAllAsync(int pageNumber, int pageSize)
+    {
+        var query = _appDbContext.People.AsQueryable();
+        return await GetPagedAsync(query, pageNumber, pageSize);
+    }
+
+    public async Task<int> CountItemsAsync()
+    => await _appDbContext.People.CountAsync();
 
     public async Task<bool> AnyAsync(string name, string birthYear)
        => await _appDbContext.People.AnyAsync(x => x.Name == name && x.BirthYear.Equals(birthYear));
@@ -35,4 +39,23 @@ public class PersonRepository : IPersonRepository
         .Include(x => x.Vehicles)
         .AsNoTracking()
         .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+
+    public async Task<Person?> GetBySlugAsync(string slug, CancellationToken cancellationToken)
+        => await _appDbContext.People
+        .Include(x => x.Films)
+        .Include(x => x.Species)
+        .Include(x => x.Starships)
+        .Include(x => x.Vehicles)
+        .AsNoTracking()
+        .FirstOrDefaultAsync(x => x.Slug == slug, cancellationToken);
+
+    public async Task<Person?> GetByUrlAsync(string url, CancellationToken cancellationToken)
+    => await _appDbContext.People
+        .FirstOrDefaultAsync(x => x.Url == url);
+
+    public async Task UpdateAsync(Person person, CancellationToken cancellationToken)
+    {
+        _appDbContext.Update(person);
+        await _appDbContext.SaveChangesAsync();
+    }
 }

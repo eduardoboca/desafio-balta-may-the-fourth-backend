@@ -1,5 +1,5 @@
-﻿using MayTheFourth.Core.Dtos;
-using MayTheFourth.Core.Entities;
+﻿using MayTheFourth.Core.Contexts.SharedContext;
+using MayTheFourth.Core.Dtos;
 
 namespace MayTheFourth.Core.Contexts.StarshipContext.UseCases.SearchAll;
 
@@ -21,4 +21,4 @@ public class Response : SharedContext.UseCases.Response
     public ResponseData? Data { get; set; }
 }
 
-public record ResponseData(List<StarshipSummaryDto> StarshipList);
+public record ResponseData(PagedList<StarshipSummaryDto> Starships);

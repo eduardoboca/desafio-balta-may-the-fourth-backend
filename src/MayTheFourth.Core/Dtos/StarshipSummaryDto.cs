@@ -4,8 +4,6 @@ namespace MayTheFourth.Core.Dtos;
 
 public class StarshipSummaryDto
 {
-    public StarshipSummaryDto() { }
-
     public StarshipSummaryDto(Starship starship)
     {
         Id = starship.Id;
@@ -15,9 +13,9 @@ public class StarshipSummaryDto
         Manufacturer = starship.Manufacturer;
     }
 
-    public Guid Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string Slug { get; set; } = string.Empty;
-    public string Model { get; set; } = string.Empty;
-    public string Manufacturer { get; set; } = string.Empty;
+    public Guid Id { get; }
+    public string Name { get; } = string.Empty;
+    public string Slug { get; } = string.Empty;
+    public string Model { get; } = string.Empty;
+    public string Manufacturer { get; } = string.Empty;
 }

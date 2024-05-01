@@ -1,4 +1,6 @@
 ﻿using MayTheFourth.Core.Entities;
+using MayTheFourth.DataImporter.Services.Contexts.FilmContext;
+using MayTheFourth.DataImporter.Services.Contexts.StarshipContext;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using System.Reflection.Metadata.Ecma335;
@@ -14,16 +16,22 @@ public static class StarshipExtension
             Core.Interfaces.Repositories.IStarshipRepository,
             Infra.Repositories.StarshipRepository>();
         #endregion
+
+        #region Register Starship Import Service
+        builder.Services.AddTransient<StarshipImportService>();
+        #endregion
     }
 
     public static void MapStarshipEndpoints(this WebApplication app)
     {
         #region Get all starships
-        app.MapGet("api/v1/starships", async (IRequestHandler<
-            Core.Contexts.StarshipContext.UseCases.SearchAll.Request,
-            Core.Contexts.StarshipContext.UseCases.SearchAll.Response> handler) =>
+        app.MapGet("api/v1/starships", async (
+            IRequestHandler<
+                Core.Contexts.StarshipContext.UseCases.SearchAll.Request,
+                Core.Contexts.StarshipContext.UseCases.SearchAll.Response> handler,
+            [FromQuery] int pageNumber = 1, int pageSize = 10) =>
         {
-            var request = new Core.Contexts.StarshipContext.UseCases.SearchAll.Request();
+            var request = new Core.Contexts.StarshipContext.UseCases.SearchAll.Request(pageNumber, pageSize);
             var result = await handler.Handle(request, new CancellationToken());
 
             return result.IsSuccess
@@ -32,12 +40,13 @@ public static class StarshipExtension
         })
             .WithTags("Starship")
             .Produces(TypedResults.Ok().StatusCode)
+            .Produces(TypedResults.BadRequest().StatusCode)
             .Produces(TypedResults.NotFound().StatusCode)
             .WithSummary("Return a list of starships")
             .WithOpenApi();
         #endregion
 
-        #region Search starship by id
+        #region Get starship by id
         app.MapGet("api/v1/starships/{id}", async (
             [FromRoute] Guid id,
             [FromServices] IRequestHandler<
@@ -52,6 +61,9 @@ public static class StarshipExtension
                 : Results.Json(result, statusCode: result.Status);
         })
             .WithTags("Starship")
+            .Produces(TypedResults.Ok().StatusCode)
+            .Produces(TypedResults.BadRequest().StatusCode)
+            .Produces(TypedResults.NotFound().StatusCode)
             .WithSummary("Return a starship according to ID")
             .WithOpenApi( opt =>
             {
@@ -61,24 +73,26 @@ public static class StarshipExtension
             });
         #endregion
 
-        #region Create Starship
-        app.MapPost("api/v1/starships/create", async (
-            [FromBody] Core.Contexts.StarshipContext.UseCases.Create.Request request,
+        #region Get starship by slug
+        app.MapGet("api/v1/starships/slug/{slug}", async (
+            [FromRoute] string slug,
             [FromServices] IRequestHandler<
-                Core.Contexts.StarshipContext.UseCases.Create.Request,
-                Core.Contexts.StarshipContext.UseCases.Create.Response> handler) =>
+                Core.Contexts.StarshipContext.UseCases.SearchBySlug.Request,
+                Core.Contexts.StarshipContext.UseCases.SearchBySlug.Response> handler) =>
         {
+            var request = new Core.Contexts.StarshipContext.UseCases.SearchBySlug.Request(slug);
             var result = await handler.Handle(request, new CancellationToken());
 
             return result.IsSuccess
-                ? Results.Created($"api/v1/starships/create/{result.Data?.starship.Id}", result)
+                ? Results.Ok(result)
                 : Results.Json(result, statusCode: result.Status);
         })
             .WithTags("Starship")
-            .Produces(TypedResults.Created().StatusCode)
+            .Produces(TypedResults.Ok().StatusCode)
             .Produces(TypedResults.BadRequest().StatusCode)
-            .WithOpenApi()
-            .WithSummary("Create a starship");
+            .Produces(TypedResults.NotFound().StatusCode)
+            .WithSummary("Return a starship according to slug")
+            .WithOpenApi();
         #endregion
     }
 }

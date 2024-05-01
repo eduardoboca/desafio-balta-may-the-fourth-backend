@@ -20,4 +20,4 @@ public class Response : SharedContext.UseCases.Response
     public ResponseData? Data { get; set; }
 }
 
-public record ResponseData(PlanetDetailsDto planet);
+public record ResponseData(PlanetDetailsDto Planet);

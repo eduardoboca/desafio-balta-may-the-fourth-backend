@@ -11,18 +11,13 @@ public class Handler : IRequestHandler<Request, Response>
     private readonly IStarshipRepository _starshipRepository;
 
     public Handler(IStarshipRepository starshipRepository)
-    {
-        _starshipRepository = starshipRepository;
-    }
+        => _starshipRepository = starshipRepository;
 
     public async Task<Response> Handle(Request request, CancellationToken cancellationToken)
     {
-        #region Validation Request
-        //TODO: Need implement a validation system
-        #endregion
-
         #region Search starship by id
         Starship? starship;
+
         try
         {
             starship = await _starshipRepository.GetByIdAsync(request.Id, cancellationToken);

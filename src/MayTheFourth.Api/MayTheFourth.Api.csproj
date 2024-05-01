@@ -28,6 +28,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MayTheFourth.Core\MayTheFourth.Core.csproj" />
+    <ProjectReference Include="..\MayTheFourth.DataImporter\MayTheFourth.DataImporter.csproj" />
     <ProjectReference Include="..\MayTheFourth.Infra\MayTheFourth.Infra.csproj" />
   </ItemGroup>
 

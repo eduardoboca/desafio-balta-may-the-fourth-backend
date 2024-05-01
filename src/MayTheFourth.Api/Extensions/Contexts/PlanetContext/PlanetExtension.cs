@@ -1,4 +1,6 @@
-﻿using MediatR;
+﻿using MayTheFourth.DataImporter.Services.Contexts.PlanetContext;
+using MayTheFourth.DataImporter.Services.Contexts.SharedContext;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MayTheFourth.Api.Extensions.Contexts.PlanetContext;
@@ -12,16 +14,22 @@ public static class PlanetExtension
             <Core.Interfaces.Repositories.IPlanetRepository,
             Infra.Repositories.PlanetRepository>();
         #endregion
+
+        #region Register Planet Import Service
+        builder.Services.AddTransient <PlanetImportService>();
+        #endregion
     }
 
     public static void MapPlanetEndpoints(this WebApplication app)
     {
         #region Get all planets
         app.MapGet("api/v1/planets", async
-            (IRequestHandler<Core.Contexts.PlanetContext.UseCases.SearchAll.Request,
-            Core.Contexts.PlanetContext.UseCases.SearchAll.Response> handler) =>
+            (IRequestHandler
+                <Core.Contexts.PlanetContext.UseCases.SearchAll.Request,
+                Core.Contexts.PlanetContext.UseCases.SearchAll.Response> handler, 
+            [FromQuery] int pageNumber = 1, int pageSize = 10) =>
         {
-            var request = new Core.Contexts.PlanetContext.UseCases.SearchAll.Request();
+            var request = new Core.Contexts.PlanetContext.UseCases.SearchAll.Request(pageNumber, pageSize);
             var result = await handler.Handle(request, new CancellationToken());
 
             return result.IsSuccess
@@ -31,6 +39,7 @@ public static class PlanetExtension
             .WithTags("Planet")
             .Produces(TypedResults.Ok().StatusCode)
             .Produces(TypedResults.NotFound().StatusCode)
+            .Produces(TypedResults.BadRequest().StatusCode)
             .WithSummary("Return a list of planets")
             .WithOpenApi();
         #endregion
@@ -50,6 +59,9 @@ public static class PlanetExtension
                 : Results.Json(result, statusCode: result.Status);
         })
             .WithTags("Planet")
+            .Produces(TypedResults.Ok().StatusCode)
+            .Produces(TypedResults.NotFound().StatusCode)
+            .Produces(TypedResults.BadRequest().StatusCode)
             .WithSummary("Return a planet according to ID")
             .WithOpenApi(opt =>
             {
@@ -59,24 +71,26 @@ public static class PlanetExtension
             });
         #endregion
 
-        #region Create planet
-        app.MapPost("api/v1/planets/create", async (
-            [FromBody] Core.Contexts.PlanetContext.UseCases.Create.Request request,
+        #region Get planet by slug
+        app.MapGet("api/v1/planets/slug/{slug}", async (
+            [FromRoute] string slug,
             [FromServices] IRequestHandler<
-                Core.Contexts.PlanetContext.UseCases.Create.Request,
-                Core.Contexts.PlanetContext.UseCases.Create.Response> handler) =>
+                Core.Contexts.PlanetContext.UseCases.SearchBySlug.Request,
+                Core.Contexts.PlanetContext.UseCases.SearchBySlug.Response> handler) =>
         {
+            var request = new Core.Contexts.PlanetContext.UseCases.SearchBySlug.Request(slug);
             var result = await handler.Handle(request, new CancellationToken());
 
             return result.IsSuccess
-                ? Results.Created($"api/v1/planets/create/{result.Data?.planet.Id}", result)
+                ? Results.Ok(result)
                 : Results.Json(result, statusCode: result.Status);
         })
             .WithTags("Planet")
-            .Produces(TypedResults.Created().StatusCode)
+            .Produces(TypedResults.Ok().StatusCode)
+            .Produces(TypedResults.NotFound().StatusCode)
             .Produces(TypedResults.BadRequest().StatusCode)
-            .WithOpenApi()
-            .WithSummary("Create a planet");
+            .WithSummary("Return a planet according to slug")
+            .WithOpenApi();
         #endregion
     }
 }

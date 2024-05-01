@@ -10,18 +10,13 @@ public class Handler : IRequestHandler<Request, Response>
 {
     private readonly IFilmRepository _filmRepository;
     public Handler(IFilmRepository filmRepository)
-    {
-        _filmRepository = filmRepository;
-    }
+        => _filmRepository = filmRepository;
 
     public async Task<Response> Handle(Request request, CancellationToken cancellationToken)
     {
-        #region Validate Request
-        //TODO: Need to implement validation system
-        #endregion
-
         #region Search film by id
         Film? film;
+
         try
         {
             film = await _filmRepository.GetByIdAsync(request.Id, cancellationToken);

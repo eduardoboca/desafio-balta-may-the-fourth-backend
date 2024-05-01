@@ -10,23 +10,18 @@ public class Handler : IRequestHandler<Request, Response>
 {
     private readonly IPersonRepository _personRepository;
     public Handler(IPersonRepository personRepository)
-    {
-        _personRepository = personRepository;
-    }
+        => _personRepository = personRepository;
 
     public async Task<Response> Handle(Request request, CancellationToken cancellationToken)
     {
-        #region Validate Request
-        //TODO: Need to add a validation system
-        #endregion
-
         #region Get character by id
         Person? person;
+
         try
         {
             person = await _personRepository.GetByIdAsync(request.Id, cancellationToken);
             if (person == null)
-                return new Response("Personagem não encontrado.", ((int)HttpStatusCode.NotFound));
+                return new Response("Erro: Personagem não encontrado.", ((int)HttpStatusCode.NotFound));
         }
         catch (Exception ex)
         {

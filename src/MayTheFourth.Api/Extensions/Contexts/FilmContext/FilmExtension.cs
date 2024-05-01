@@ -1,4 +1,6 @@
-﻿using MediatR;
+﻿using MayTheFourth.DataImporter.Services.Contexts.FilmContext;
+using MayTheFourth.DataImporter.Services.Contexts.SharedContext;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MayTheFourth.Api.Extensions.Contexts.FilmContext
@@ -12,16 +14,23 @@ namespace MayTheFourth.Api.Extensions.Contexts.FilmContext
                 <Core.Interfaces.Repositories.IFilmRepository,
                 Infra.Repositories.FilmRepository>();
             #endregion
+
+            #region Register Film Import Service
+            builder.Services.AddTransient<FilmImportService>();
+            #endregion
         }
 
         public static void MapFilmEndpoints(this WebApplication app)
         {
             #region Get all films
             app.MapGet("api/v1/films", async
-                (IRequestHandler<Core.Contexts.FilmContext.UseCases.SearchAll.Request,
-                Core.Contexts.FilmContext.UseCases.SearchAll.Response> handler) =>
+                (
+                IRequestHandler<Core.Contexts.FilmContext.UseCases.SearchAll.Request,
+                Core.Contexts.FilmContext.UseCases.SearchAll.Response> handler,
+                [FromQuery] int pageNumber = 1,
+                [FromQuery] int pageSize = 10) =>
             {
-                var request = new Core.Contexts.FilmContext.UseCases.SearchAll.Request();
+                var request = new Core.Contexts.FilmContext.UseCases.SearchAll.Request(pageNumber, pageSize);
                 var result = await handler.Handle(request, new CancellationToken());
 
                 return result.IsSuccess
@@ -30,6 +39,7 @@ namespace MayTheFourth.Api.Extensions.Contexts.FilmContext
             })
                 .WithTags("Film")
                 .Produces(TypedResults.Ok().StatusCode)
+                .Produces(TypedResults.BadRequest().StatusCode)
                 .Produces(TypedResults.NotFound().StatusCode)
                 .WithSummary("Return a list of films")
                 .WithOpenApi();
@@ -50,6 +60,9 @@ namespace MayTheFourth.Api.Extensions.Contexts.FilmContext
                     : Results.Json(result, statusCode: result.Status);
             })
                 .WithTags("Film")
+                .Produces(TypedResults.Ok().StatusCode)
+                .Produces(TypedResults.BadRequest().StatusCode)
+                .Produces(TypedResults.NotFound().StatusCode)
                 .WithSummary("Return a film according to ID")
                 .WithOpenApi(opt =>
                 {
@@ -57,6 +70,28 @@ namespace MayTheFourth.Api.Extensions.Contexts.FilmContext
                     parameter.Description = "The ID associated with the created Film";
                     return opt;
                 });
+            #endregion
+
+            #region Get film by slug
+            app.MapGet("api/v1/films/slug/{slug}", async (
+                [FromRoute] string slug,
+                [FromServices] IRequestHandler<
+                    Core.Contexts.FilmContext.UseCases.SearchBySlug.Request,
+                    Core.Contexts.FilmContext.UseCases.SearchBySlug.Response> handler) =>
+            {
+                var request = new Core.Contexts.FilmContext.UseCases.SearchBySlug.Request(slug);
+                var result = await handler.Handle(request, new CancellationToken());
+
+                return result.IsSuccess
+                    ? Results.Ok(result)
+                    : Results.Json(result, statusCode: result.Status);
+            })
+                .WithTags("Film")
+                .Produces(TypedResults.Ok().StatusCode)
+                .Produces(TypedResults.BadRequest().StatusCode)
+                .Produces(TypedResults.NotFound().StatusCode)
+                .WithSummary("Return a film according to slug")
+                .WithOpenApi();
             #endregion
         }
 

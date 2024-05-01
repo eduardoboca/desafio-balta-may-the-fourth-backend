@@ -11,12 +11,12 @@ public class AppDbContext : DbContext
         
     }
 
+    public DbSet<Vehicle> Vehicles { get; set; }
     public DbSet<Planet> Planets { get; set; }
     public DbSet<Starship> Starships { get; set; }
     public DbSet<Film> Films { get; set; }
     public DbSet<Person> People { get; set; }
     public DbSet<Species> Species { get; set; }
-    public DbSet<Vehicle> Vehicles { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MayTheFourth.Api", "MayTheF
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MayTheFourth.Tests", "MayTheFourth.Tests\MayTheFourth.Tests.csproj", "{8305FACC-1EC7-4F75-82F8-3DD5552F280C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MayTheFourth.DataImporter", "MayTheFourth.DataImporter\MayTheFourth.DataImporter.csproj", "{FA5BC8AE-F798-4764-A9AF-F37EB2618388}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{8305FACC-1EC7-4F75-82F8-3DD5552F280C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8305FACC-1EC7-4F75-82F8-3DD5552F280C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8305FACC-1EC7-4F75-82F8-3DD5552F280C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FA5BC8AE-F798-4764-A9AF-F37EB2618388}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FA5BC8AE-F798-4764-A9AF-F37EB2618388}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FA5BC8AE-F798-4764-A9AF-F37EB2618388}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FA5BC8AE-F798-4764-A9AF-F37EB2618388}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
